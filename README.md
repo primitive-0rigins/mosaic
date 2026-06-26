@@ -179,6 +179,8 @@ mosaic/
 | Language sidecar | qwen2.5:0.5b (0.5B) — local, no cloud |
 | Max iterations | 4 — balances quality vs. cost |
 
+Additional implementation notes: [docs/project-notes.md](docs/project-notes.md)
+
 ---
 
 ## Prior Art
