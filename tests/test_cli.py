@@ -68,6 +68,43 @@ def test_memory_command_reports_summary(tmp_path, capsys):
     assert "edges: 0" in output
 
 
+def test_report_command_writes_static_html(tmp_path, capsys):
+    image_path = tmp_path / "sample.png"
+    store_path = tmp_path / "memory.json"
+    report_path = tmp_path / "report.html"
+    Image.new("RGB", (500, 448), "white").save(image_path)
+    assert main(["ingest", str(image_path), "--store", str(store_path)]) == 0
+    capsys.readouterr()
+
+    tile_ids = list(JsonMemoryStore(store_path).load().nodes())
+    assert main(
+        [
+            "link",
+            *tile_ids,
+            "--store",
+            str(store_path),
+            "--label",
+            "supports",
+            "--claim",
+            "same source image",
+        ]
+    ) == 0
+    capsys.readouterr()
+
+    code = main(["report", "--store", str(store_path), "--output", str(report_path)])
+
+    output = capsys.readouterr().out
+    html = report_path.read_text(encoding="utf-8")
+    assert code == 0
+    assert report_path.exists()
+    assert f"report: {report_path}" in output
+    assert "tiles: 2" in output
+    assert "hyperedges: 1" in output
+    assert "Mosaic Memory Report" in html
+    assert tile_ids[0] in html
+    assert "same source image" in html
+
+
 def test_link_command_creates_hyperedge(tmp_path, capsys):
     image_path = tmp_path / "sample.png"
     store_path = tmp_path / "memory.json"

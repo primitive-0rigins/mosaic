@@ -19,6 +19,7 @@ Mosaic is an early local-first research prototype. The working path today is:
 6. Retrieve visually similar tiles with `mosaic search-image`
 7. Manually link multiple tiles into a persisted hyperedge with `mosaic link`
 8. Inspect a tile and its hyperedges with `mosaic show`
+9. Export a static HTML memory report with `mosaic report`
 
 The full agentic question-answering loop and VLM-grade semantic image embeddings are still
 roadmap items. The prototype is intentionally small, but the implemented path is visual:
@@ -120,10 +121,12 @@ mosaic memory --store .mosaic/memory.json
 mosaic search-image path/to/query-image.png --store .mosaic/memory.json
 mosaic link tile-a tile-b --store .mosaic/memory.json --label supports --claim "joint evidence"
 mosaic show tile-a --store .mosaic/memory.json
+mosaic report --store .mosaic/memory.json --output .mosaic/report.html
 ```
 
 `mosaic search-image` prints the stored tile path for each match, so the retrieved
 evidence can be opened and inspected.
+`mosaic report` creates a static HTML overview of stored tiles and hyperedges.
 
 For development:
 
@@ -189,6 +192,7 @@ Mosaic combines all three.
 - [x] Image-to-image tile retrieval
 - [x] Manual multi-tile hyperedge creation
 - [x] Tile and hyperedge inspection CLI
+- [x] Static HTML memory report
 - [ ] Real vector store for tile retrieval (SQLite or DuckDB)
 - [ ] True image embeddings via embed-capable VLM
 - [ ] CLI — `mosaic query "<question>"`

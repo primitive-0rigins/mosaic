@@ -7,6 +7,7 @@ from pathlib import Path
 from mosaic.embedding.image_features import embed_image_pixels
 from mosaic.hypergraph.graph import HyperEdge, HyperGraph
 from mosaic.ingestion.tiler import tile_file
+from mosaic.report import write_html_report
 from mosaic.retrieval.vector import cosine_similarity
 from mosaic.sidecar.models import check_sidecars
 from mosaic.storage import JsonMemoryStore
@@ -38,6 +39,18 @@ def build_parser() -> ArgumentParser:
         "--store",
         default=".mosaic/memory.json",
         help="Path to the JSON memory store",
+    )
+
+    report_parser = subcommands.add_parser("report", help="Write a static HTML memory report")
+    report_parser.add_argument(
+        "--store",
+        default=".mosaic/memory.json",
+        help="Path to the JSON memory store",
+    )
+    report_parser.add_argument(
+        "--output",
+        default=".mosaic/report.html",
+        help="Path for the HTML report",
     )
 
     show_parser = subcommands.add_parser("show", help="Show a stored tile and its hyperedges")
@@ -89,6 +102,8 @@ def main(argv: list[str] | None = None) -> int:
         return _ingest(args)
     if args.command == "memory":
         return _memory(args)
+    if args.command == "report":
+        return _report(args)
     if args.command == "show":
         return _show(args)
     if args.command == "link":
@@ -174,6 +189,16 @@ def _memory(args: Namespace) -> int:
     print(f"nodes: {summary['nodes']}")
     print(f"edges: {summary['edges']}")
     print(f"avg degree: {summary['avg_degree']:.2f}")
+    return 0
+
+
+def _report(args: Namespace) -> int:
+    graph = JsonMemoryStore(args.store).load()
+    output_path = write_html_report(graph, args.output)
+    summary = graph.summary()
+    print(f"report: {output_path}")
+    print(f"tiles: {summary['nodes']}")
+    print(f"hyperedges: {summary['edges']}")
     return 0
 
 
