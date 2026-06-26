@@ -20,6 +20,7 @@ from typing import Optional
 
 from mosaic.hypergraph.graph import HyperGraph, HyperEdge
 from mosaic.ingestion.tiler import Tile
+from mosaic.retrieval.vector import VectorIndex
 
 
 @dataclass
@@ -51,6 +52,7 @@ class MosaicAgent:
     def __init__(self, graph: HyperGraph, tile_store: dict[str, Tile], sidecar_model: str = "qwen2.5:0.5b"):
         self.graph = graph
         self.tile_store = tile_store  # tile_id -> Tile
+        self.index = VectorIndex(tile_store)
         self.model = sidecar_model
 
     async def query(self, question: str) -> str:
@@ -79,10 +81,8 @@ class MosaicAgent:
         return state.answer or "Could not find sufficient evidence in memory."
 
     def _retrieve(self, query: str, top_k: int = 4) -> list[Tile]:
-        """Retrieve tiles by cosine similarity to query embedding (stub)."""
-        # Stub: return first top_k tiles. Replace with real vector search.
-        tiles = list(self.tile_store.values())
-        return tiles[:top_k]
+        """Retrieve embedded tiles by cosine similarity to the query."""
+        return [result.tile for result in self.index.search(query, top_k=top_k)]
 
     async def _evaluate(self, original_query: str, tiles: list[Tile], state: AgentState) -> RetrievalResult:
         """Ask the language sidecar: are these tiles sufficient to answer the query?"""

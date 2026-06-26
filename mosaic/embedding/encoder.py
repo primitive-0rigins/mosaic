@@ -11,8 +11,6 @@ import base64
 import io
 from typing import Protocol
 
-from PIL import Image
-
 from mosaic.ingestion.tiler import Tile
 
 
@@ -71,6 +69,16 @@ def _text_to_stub_embedding(text: str, dim: int = 384) -> list[float]:
     # Normalize
     mag = sum(f ** 2 for f in floats) ** 0.5 or 1.0
     return [f / mag for f in floats]
+
+
+def embed_query_stub(query: str, dim: int = 384) -> list[float]:
+    """
+    Deterministic local query embedding for prototype retrieval.
+
+    Tile embeddings should still come from the vision sidecar. This function exists so
+    retrieval can be exercised without calling a cloud API or requiring another model.
+    """
+    return _text_to_stub_embedding(query, dim=dim)
 
 
 async def embed_tiles(tiles: list[Tile], sidecar: VisionSidecar) -> list[Tile]:

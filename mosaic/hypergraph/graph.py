@@ -14,7 +14,7 @@ Structure:
   - Labels = what the hyperedge means (supports, contradicts, elaborates, defines)
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 import uuid
 
