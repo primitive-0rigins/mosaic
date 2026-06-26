@@ -24,6 +24,9 @@ dev = [
     "ruff>=0.4",
 ]
 
+[project.scripts]
+mosaic = "mosaic.cli:main"
+
 [tool.ruff]
 line-length = 100
 
