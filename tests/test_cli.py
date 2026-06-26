@@ -108,6 +108,50 @@ def test_link_command_requires_multiple_tiles(tmp_path, capsys):
     assert "Hyperedges must connect at least two tiles" in output
 
 
+def test_show_command_reports_tile_and_edges(tmp_path, capsys):
+    image_path = tmp_path / "sample.png"
+    store_path = tmp_path / "memory.json"
+    Image.new("RGB", (500, 448), "white").save(image_path)
+    assert main(["ingest", str(image_path), "--store", str(store_path)]) == 0
+    capsys.readouterr()
+
+    tile_ids = list(JsonMemoryStore(store_path).load().nodes())
+    assert main(
+        [
+            "link",
+            *tile_ids,
+            "--store",
+            str(store_path),
+            "--label",
+            "supports",
+            "--claim",
+            "same source image",
+        ]
+    ) == 0
+    capsys.readouterr()
+
+    code = main(["show", tile_ids[0], "--store", str(store_path)])
+
+    output = capsys.readouterr().out
+    assert code == 0
+    assert f"tile: {tile_ids[0]}" in output
+    assert "source:" in output
+    assert "tile path:" in output
+    assert "edges: 1" in output
+    assert "label=supports" in output
+    assert "claim: same source image" in output
+
+
+def test_show_command_reports_missing_tile(tmp_path, capsys):
+    store_path = tmp_path / "memory.json"
+
+    code = main(["show", "tile-missing", "--store", str(store_path)])
+
+    output = capsys.readouterr().out
+    assert code == 2
+    assert "Tile not found: tile-missing" in output
+
+
 def test_search_image_command_reports_visual_match(tmp_path, capsys):
     image_path = tmp_path / "sample.png"
     store_path = tmp_path / "memory.json"

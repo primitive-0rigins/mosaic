@@ -40,6 +40,14 @@ def build_parser() -> ArgumentParser:
         help="Path to the JSON memory store",
     )
 
+    show_parser = subcommands.add_parser("show", help="Show a stored tile and its hyperedges")
+    show_parser.add_argument("tile_id", help="Tile ID to inspect")
+    show_parser.add_argument(
+        "--store",
+        default=".mosaic/memory.json",
+        help="Path to the JSON memory store",
+    )
+
     link_parser = subcommands.add_parser("link", help="Create a hyperedge across stored tiles")
     link_parser.add_argument("tile_ids", nargs="+", help="Two or more tile IDs to connect")
     link_parser.add_argument(
@@ -81,6 +89,8 @@ def main(argv: list[str] | None = None) -> int:
         return _ingest(args)
     if args.command == "memory":
         return _memory(args)
+    if args.command == "show":
+        return _show(args)
     if args.command == "link":
         return _link(args)
     if args.command == "search-image":
@@ -164,6 +174,31 @@ def _memory(args: Namespace) -> int:
     print(f"nodes: {summary['nodes']}")
     print(f"edges: {summary['edges']}")
     print(f"avg degree: {summary['avg_degree']:.2f}")
+    return 0
+
+
+def _show(args: Namespace) -> int:
+    graph = JsonMemoryStore(args.store).load()
+    nodes = graph.nodes()
+    metadata = nodes.get(args.tile_id)
+    if metadata is None:
+        print(f"Tile not found: {args.tile_id}")
+        return 2
+
+    print(f"tile: {args.tile_id}")
+    print(f"source: {metadata['source']}")
+    print(f"page: {metadata['page']}")
+    print(f"index: {metadata['index']}")
+    if metadata.get("tile_path"):
+        print(f"tile path: {metadata['tile_path']}")
+
+    edges = graph.edges_for(args.tile_id)
+    print(f"edges: {len(edges)}")
+    for edge in edges:
+        print(f"- {edge.edge_id} label={edge.label} confidence={edge.confidence:.2f}")
+        print(f"  tiles: {', '.join(edge.tile_ids)}")
+        if edge.claim:
+            print(f"  claim: {edge.claim}")
     return 0
 
 

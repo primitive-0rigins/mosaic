@@ -6,8 +6,9 @@ Standard RAG converts documents to text, chunks the text, embeds the chunks as v
 
 Mosaic never converts documents to text. Documents become **pixel tiles**. Tiles become
 **nodes in a hypergraph**. The current prototype can ingest, persist, and visually retrieve
-tiles. It can also persist manually created hyperedges across multiple tiles. The intended
-agentic loop will decide what to retrieve, validate it, and build memory as structure.
+tiles. It can also persist manually created hyperedges across multiple tiles and inspect a
+tile's stored evidence path plus relationships. The intended agentic loop will decide what to
+retrieve, validate it, and build memory as structure.
 
 ---
 
@@ -73,7 +74,8 @@ Sidecar 2 evaluates: sufficient? relevant? contradictory?
 
 This loop is not the current CLI path yet. The working path today is image/PDF tiling, JSON
 hypergraph persistence, saved tile artifacts, image-to-image tile retrieval, and manual
-multi-tile hyperedge creation.
+multi-tile hyperedge creation. `mosaic show` inspects one tile and the hyperedges that include
+it.
 
 ---
 
