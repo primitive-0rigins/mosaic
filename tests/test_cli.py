@@ -39,6 +39,22 @@ def test_ingest_command_saves_memory(tmp_path, capsys):
     assert "memory nodes: 2" in output
 
 
+def test_memory_command_reports_summary(tmp_path, capsys):
+    image_path = tmp_path / "sample.png"
+    store_path = tmp_path / "memory.json"
+    Image.new("RGB", (500, 448), "white").save(image_path)
+    assert main(["ingest", str(image_path), "--store", str(store_path)]) == 0
+    capsys.readouterr()
+
+    code = main(["memory", "--store", str(store_path)])
+
+    output = capsys.readouterr().out
+    assert code == 0
+    assert f"store: {store_path}" in output
+    assert "nodes: 2" in output
+    assert "edges: 0" in output
+
+
 def test_sidecars_command_reports_model_status(monkeypatch, capsys):
     monkeypatch.setattr(
         "mosaic.cli.check_sidecars",

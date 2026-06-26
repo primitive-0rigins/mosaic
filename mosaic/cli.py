@@ -27,6 +27,13 @@ def build_parser() -> ArgumentParser:
         help="Path to the JSON memory store",
     )
 
+    memory_parser = subcommands.add_parser("memory", help="Inspect a Mosaic memory store")
+    memory_parser.add_argument(
+        "--store",
+        default=".mosaic/memory.json",
+        help="Path to the JSON memory store",
+    )
+
     return parser
 
 
@@ -38,6 +45,8 @@ def main(argv: list[str] | None = None) -> int:
         return _tile(args)
     if args.command == "ingest":
         return _ingest(args)
+    if args.command == "memory":
+        return _memory(args)
     raise ValueError(f"Unsupported command: {args.command}")
 
 
@@ -99,6 +108,18 @@ def _add_tiles(graph: HyperGraph, tiles) -> None:
                 "embedding_dim": len(tile.embedding),
             },
         )
+
+
+def _memory(args: Namespace) -> int:
+    store = JsonMemoryStore(args.store)
+    graph = store.load()
+    summary = graph.summary()
+
+    print(f"store: {store.path}")
+    print(f"nodes: {summary['nodes']}")
+    print(f"edges: {summary['edges']}")
+    print(f"avg degree: {summary['avg_degree']:.2f}")
+    return 0
 
 
 if __name__ == "__main__":
