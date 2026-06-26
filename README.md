@@ -7,6 +7,14 @@
 
 ---
 
+## Status
+
+Mosaic is an early local-first research prototype. The core package structure is in place for
+pixel ingestion, tile embeddings, hypergraph memory, sidecar model checks, and an agentic
+retrieval loop. The roadmap below tracks the pieces still being hardened for real workloads.
+
+---
+
 ## The Problem with Standard RAG
 
 Standard RAG converts documents to text, chunks the text, embeds the chunks, and retrieves by similarity. It destroys everything visual in the process — tables, charts, spatial layout, color coding, cross-page relationships.
@@ -74,6 +82,10 @@ No cloud API. No model larger than 3B. Runs fully local.
 ## Getting Started
 
 ```bash
+# Clone the repo
+git clone https://github.com/primitive-0rigins/mosaic.git
+cd mosaic
+
 # Install dependencies
 pip install -e .
 
@@ -83,6 +95,14 @@ ollama pull qwen2.5:0.5b
 
 # Check sidecars are ready
 python -c "from mosaic.sidecar.models import check_sidecars; print(check_sidecars())"
+```
+
+For development:
+
+```bash
+pip install -e ".[dev]"
+pytest
+ruff check .
 ```
 
 ---
@@ -114,7 +134,7 @@ mosaic/
 | Memory structure | Hypergraph (n-ary edges) not standard graph (binary edges) |
 | Retrieval strategy | Agentic loop — validate and re-retrieve, not single-pass |
 | Vision sidecar | moondream2 (1.8B) — local, no cloud |
-| Language sidecar | qwen2.5:0.5b (1.5B) — local, no cloud |
+| Language sidecar | qwen2.5:0.5b (0.5B) — local, no cloud |
 | Max iterations | 4 — balances quality vs. cost |
 
 ---
