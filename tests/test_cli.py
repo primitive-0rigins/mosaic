@@ -27,16 +27,28 @@ def test_tile_command_returns_error_for_missing_file(capsys):
 def test_ingest_command_saves_memory(tmp_path, capsys):
     image_path = tmp_path / "sample.png"
     store_path = tmp_path / "memory.json"
+    tiles_dir = tmp_path / "tiles"
     Image.new("RGB", (500, 448), "white").save(image_path)
 
-    code = main(["ingest", str(image_path), "--store", str(store_path)])
+    code = main(
+        [
+            "ingest",
+            str(image_path),
+            "--store",
+            str(store_path),
+            "--tiles-dir",
+            str(tiles_dir),
+        ]
+    )
 
     output = capsys.readouterr().out
     assert code == 0
     assert store_path.exists()
+    assert len(list(tiles_dir.glob("tile-*.png"))) == 2
     assert "ingested: sample.png" in output
     assert "tiles added: 2" in output
     assert "memory nodes: 2" in output
+    assert f"tiles dir: {tiles_dir}" in output
 
 
 def test_memory_command_reports_summary(tmp_path, capsys):
@@ -68,6 +80,7 @@ def test_search_image_command_reports_visual_match(tmp_path, capsys):
     assert code == 0
     assert "1. tile-" in output
     assert "source=sample.png" in output
+    assert "tile_path=" in output
 
 
 def test_sidecars_command_reports_model_status(monkeypatch, capsys):

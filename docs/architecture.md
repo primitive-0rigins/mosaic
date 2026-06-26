@@ -4,7 +4,10 @@
 
 Standard RAG converts documents to text, chunks the text, embeds the chunks as vectors, and retrieves by similarity. It destroys visual structure — tables, charts, spatial layout, color coding — in the process.
 
-Mosaic never converts documents to text. Documents become **pixel tiles**. Tiles become **nodes in a hypergraph**. An **agentic loop** decides what to retrieve, validates it, and builds memory as structure.
+Mosaic never converts documents to text. Documents become **pixel tiles**. Tiles become
+**nodes in a hypergraph**. The current prototype can ingest, persist, and visually retrieve
+tiles. The intended agentic loop will decide what to retrieve, validate it, and build memory
+as structure.
 
 ---
 
@@ -14,18 +17,18 @@ Mosaic never converts documents to text. Documents become **pixel tiles**. Tiles
 ┌─────────────────────────────────────────────────────────────┐
 │  Layer 3 — Agentic Loop                                     │
 │  Sidecar 2: qwen2.5:0.5b                                    │
-│  Decides: retrieve → validate → re-query → answer           │
-│  Updates hypergraph memory after each successful query       │
+│  Roadmap: retrieve → validate → re-query → answer           │
+│  Roadmap: update memory after each successful query          │
 ├─────────────────────────────────────────────────────────────┤
 │  Layer 2 — Hypergraph Memory                                │
 │  Nodes = tiles. Hyperedges = n-ary relationships.           │
 │  "Tiles A, C, F together support claim X"                   │
 │  Unlike standard graphs, edges span any number of nodes.    │
 ├─────────────────────────────────────────────────────────────┤
-│  Layer 1 — Pixel Tile Ingestion + Embedding                 │
-│  Sidecar 1: moondream2 (1.8B vision model)                  │
+│  Layer 1 — Pixel Tile Ingestion + Visual Vectors            │
+│  Current: compact pixel-derived vectors + saved tile PNGs   │
 │  Documents rendered as images → sliced into 448x448 tiles   │
-│  Each tile embedded visually — never parsed as text         │
+│  Each tile is represented visually — never parsed as text   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -45,7 +48,7 @@ This is the key structural difference between Mosaic and VimRAG (Alibaba, 2026),
 
 ---
 
-## Agentic Loop (CRAG/Self-RAG Pattern)
+## Intended Agentic Loop (CRAG/Self-RAG Pattern)
 
 ```
 Query arrives
@@ -68,12 +71,17 @@ Sidecar 2 evaluates: sufficient? relevant? contradictory?
 
 ---
 
+This loop is not the current CLI path yet. The working path today is image/PDF tiling, JSON
+hypergraph persistence, saved tile artifacts, and image-to-image tile retrieval.
+
+---
+
 ## Sidecar Models
 
 | Role | Model | Size | Purpose |
 |------|-------|------|---------|
-| Vision | moondream2 | 1.8B | Reads tiles visually, produces embeddings |
-| Language | qwen2.5:0.5b | 0.5B | Drives agentic loop decisions |
+| Vision | moondream2 | 1.8B | Roadmap VLM path for tile understanding |
+| Language | qwen2.5:0.5b | 0.5B | Roadmap agentic loop decisions |
 
 Both run locally via Ollama. No cloud API. No model larger than 3B.
 

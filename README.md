@@ -15,7 +15,8 @@ Mosaic is an early local-first research prototype. The working path today is:
 2. Store each tile as a hypergraph node
 3. Persist the hypergraph to a local JSON memory store
 4. Build a small pixel-derived visual vector for each tile
-5. Retrieve visually similar tiles with `mosaic search-image`
+5. Save each tile as a PNG artifact
+6. Retrieve visually similar tiles with `mosaic search-image`
 
 The full agentic question-answering loop and VLM-grade semantic image embeddings are still
 roadmap items. The prototype is intentionally small, but the implemented path is visual:
@@ -36,7 +37,10 @@ More critically: it retrieves once, blindly, and hopes the top-k results are rig
 **Three layers. No text parsing.**
 
 ### Layer 1 — Pixel Tiles
-Documents are rendered as images and sliced into 448×448 pixel tiles. A local vision model (moondream2, 1.8B) reads each tile and produces an embedding. The document is never parsed as text.
+Documents are rendered as images and sliced into 448×448 pixel tiles. The current prototype
+stores a compact pixel-derived visual vector for each tile, plus the tile PNG itself. The
+document is never parsed as text. A local VLM embedding path is planned, but not presented as
+done.
 
 ### Layer 2 — Hypergraph Memory
 Tiles are stored as nodes in a hypergraph. Unlike a standard knowledge graph where edges connect exactly 2 nodes, **hyperedges connect any number of nodes simultaneously**.
@@ -48,14 +52,15 @@ This matters because real evidence is n-ary:
 A binary graph cannot represent this without losing meaning. A hyperedge captures it natively.
 
 ### Layer 3 — Agentic Loop
-A local language model (qwen2.5:0.5b) drives retrieval decisions:
+The intended agentic loop is a local language model (qwen2.5:0.5b) driving retrieval decisions:
 
 1. Retrieve candidate tiles
 2. Evaluate: are these tiles sufficient? relevant? contradictory?
 3. If not — reformulate the query and retrieve again (max 4 iterations)
 4. If yes — synthesize an answer and add a hyperedge to memory
 
-Each successful query makes the memory richer. The hypergraph grows as Mosaic is used.
+This layer is still roadmap. The current CLI proves the lower-level visual memory path first:
+tile, store, persist, and retrieve visual evidence.
 
 ---
 
@@ -69,8 +74,8 @@ Each successful query makes the memory richer. The hypergraph grows as Mosaic is
 │  Hypergraph Memory                                          │
 │  nodes = tiles    hyperedges = n-ary relationships          │
 ├─────────────────────────────────────────────────────────────┤
-│  Pixel Ingestion       moondream2 (1.8B)                    │
-│  documents → 448×448 tiles → visual embeddings              │
+│  Pixel Ingestion       current: local pixel vectors          │
+│  documents → 448×448 tiles → saved PNGs + vectors           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -112,6 +117,9 @@ mosaic ingest path/to/document-or-image.png --store .mosaic/memory.json
 mosaic memory --store .mosaic/memory.json
 mosaic search-image path/to/query-image.png --store .mosaic/memory.json
 ```
+
+`mosaic search-image` prints the stored tile path for each match, so the retrieved
+evidence can be opened and inspected.
 
 For development:
 
@@ -173,6 +181,7 @@ Mosaic combines all three.
 - [x] Pixel tile ingestion
 - [x] Persistent hypergraph node storage
 - [x] Local pixel-derived visual vectors
+- [x] Saved tile artifacts for inspection
 - [x] Image-to-image tile retrieval
 - [ ] Real vector store for tile retrieval (SQLite or DuckDB)
 - [ ] True image embeddings via embed-capable VLM

@@ -28,6 +28,10 @@ def build_parser() -> ArgumentParser:
         default=".mosaic/memory.json",
         help="Path to the JSON memory store",
     )
+    ingest_parser.add_argument(
+        "--tiles-dir",
+        help="Directory for saved tile PNG artifacts. Defaults to <store parent>/tiles",
+    )
 
     memory_parser = subcommands.add_parser("memory", help="Inspect a Mosaic memory store")
     memory_parser.add_argument(
@@ -99,7 +103,8 @@ def _ingest(args: Namespace) -> int:
     store = JsonMemoryStore(args.store)
     graph = store.load()
     tiles = tile_file(str(path))
-    _add_tiles(graph, tiles)
+    tiles_dir = Path(args.tiles_dir) if args.tiles_dir else store.path.parent / "tiles"
+    _add_tiles(graph, tiles, tiles_dir)
     store.save(graph)
 
     summary = graph.summary()
@@ -108,17 +113,22 @@ def _ingest(args: Namespace) -> int:
     print(f"memory nodes: {summary['nodes']}")
     print(f"memory edges: {summary['edges']}")
     print(f"store: {store.path}")
+    print(f"tiles dir: {tiles_dir}")
     return 0
 
 
-def _add_tiles(graph: HyperGraph, tiles) -> None:
+def _add_tiles(graph: HyperGraph, tiles, tiles_dir: Path) -> None:
+    tiles_dir.mkdir(parents=True, exist_ok=True)
     for tile in tiles:
+        tile_path = tiles_dir / f"{tile.tile_id}.png"
+        tile.image.save(tile_path)
         graph.add_tile(
             tile.tile_id,
             {
                 "source": tile.source,
                 "page": tile.page,
                 "index": tile.index,
+                "tile_path": str(tile_path),
                 "width": tile.image.width,
                 "height": tile.image.height,
                 "embedding_dim": len(tile.embedding),
@@ -155,9 +165,12 @@ def _search_image(args: Namespace) -> int:
         return 1
 
     for rank, (tile_id, score, metadata) in enumerate(results, start=1):
+        tile_path = metadata.get("tile_path", "")
+        tile_path_part = f" tile_path={tile_path}" if tile_path else ""
         print(
             f"{rank}. {tile_id} score={score:.3f} "
             f"source={Path(metadata['source']).name} page={metadata['page']} index={metadata['index']}"
+            f"{tile_path_part}"
         )
     return 0
 
