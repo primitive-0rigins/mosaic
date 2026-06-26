@@ -4,8 +4,10 @@ from argparse import ArgumentParser, Namespace
 from collections import Counter
 from pathlib import Path
 
+from mosaic.hypergraph.graph import HyperGraph
 from mosaic.ingestion.tiler import tile_file
 from mosaic.sidecar.models import check_sidecars
+from mosaic.storage import JsonMemoryStore
 
 
 def build_parser() -> ArgumentParser:
@@ -17,6 +19,14 @@ def build_parser() -> ArgumentParser:
     tile_parser = subcommands.add_parser("tile", help="Render a file into Mosaic pixel tiles")
     tile_parser.add_argument("path", help="Image or PDF file to tile")
 
+    ingest_parser = subcommands.add_parser("ingest", help="Tile a file and save it into memory")
+    ingest_parser.add_argument("path", help="Image or PDF file to ingest")
+    ingest_parser.add_argument(
+        "--store",
+        default=".mosaic/memory.json",
+        help="Path to the JSON memory store",
+    )
+
     return parser
 
 
@@ -26,6 +36,8 @@ def main(argv: list[str] | None = None) -> int:
         return _sidecars()
     if args.command == "tile":
         return _tile(args)
+    if args.command == "ingest":
+        return _ingest(args)
     raise ValueError(f"Unsupported command: {args.command}")
 
 
@@ -51,6 +63,42 @@ def _tile(args: Namespace) -> int:
     for page, count in sorted(pages.items()):
         print(f"page {page}: {count}")
     return 0
+
+
+def _ingest(args: Namespace) -> int:
+    path = Path(args.path)
+    if not path.exists():
+        print(f"File not found: {path}")
+        return 2
+
+    store = JsonMemoryStore(args.store)
+    graph = store.load()
+    tiles = tile_file(str(path))
+    _add_tiles(graph, tiles)
+    store.save(graph)
+
+    summary = graph.summary()
+    print(f"ingested: {path.name}")
+    print(f"tiles added: {len(tiles)}")
+    print(f"memory nodes: {summary['nodes']}")
+    print(f"memory edges: {summary['edges']}")
+    print(f"store: {store.path}")
+    return 0
+
+
+def _add_tiles(graph: HyperGraph, tiles) -> None:
+    for tile in tiles:
+        graph.add_tile(
+            tile.tile_id,
+            {
+                "source": tile.source,
+                "page": tile.page,
+                "index": tile.index,
+                "width": tile.image.width,
+                "height": tile.image.height,
+                "embedding_dim": len(tile.embedding),
+            },
+        )
 
 
 if __name__ == "__main__":

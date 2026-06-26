@@ -15,6 +15,7 @@ Structure:
 """
 
 from dataclasses import dataclass
+from dataclasses import asdict
 from typing import Optional
 import uuid
 
@@ -30,6 +31,8 @@ class HyperEdge:
 
     @classmethod
     def create(cls, tile_ids: list[str], label: str, claim: str = None, confidence: float = 1.0) -> "HyperEdge":
+        if len(tile_ids) < 2:
+            raise ValueError("Hyperedges must connect at least two tiles")
         return cls(
             edge_id=str(uuid.uuid4())[:8],
             tile_ids=tile_ids,
@@ -58,6 +61,8 @@ class HyperGraph:
 
     def add_edge(self, edge: HyperEdge):
         """Add a hyperedge connecting multiple tiles."""
+        if len(edge.tile_ids) < 2:
+            raise ValueError("Hyperedges must connect at least two tiles")
         for tid in edge.tile_ids:
             if tid not in self._nodes:
                 raise ValueError(f"Tile {tid} not in graph — add it first")
@@ -84,6 +89,31 @@ class HyperGraph:
             if all(tid in edge.tile_ids for tid in tile_ids):
                 result.append(edge)
         return result
+
+    def nodes(self) -> dict[str, dict]:
+        """Return a copy of tile node metadata."""
+        return {tile_id: metadata.copy() for tile_id, metadata in self._nodes.items()}
+
+    def edges(self) -> list[HyperEdge]:
+        """Return all hyperedges."""
+        return list(self._edges.values())
+
+    def to_dict(self) -> dict:
+        """Serialize the hypergraph to JSON-compatible data."""
+        return {
+            "nodes": self.nodes(),
+            "edges": [asdict(edge) for edge in self.edges()],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "HyperGraph":
+        """Load a hypergraph from JSON-compatible data."""
+        graph = cls()
+        for tile_id, metadata in data.get("nodes", {}).items():
+            graph.add_tile(tile_id, metadata)
+        for edge_data in data.get("edges", []):
+            graph.add_edge(HyperEdge(**edge_data))
+        return graph
 
     def summary(self) -> dict:
         return {
