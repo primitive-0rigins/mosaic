@@ -4,8 +4,10 @@ from argparse import ArgumentParser, Namespace
 from collections import Counter
 from pathlib import Path
 
+from mosaic.embedding.image_features import embed_image_pixels
 from mosaic.hypergraph.graph import HyperGraph
 from mosaic.ingestion.tiler import tile_file
+from mosaic.retrieval.vector import cosine_similarity
 from mosaic.sidecar.models import check_sidecars
 from mosaic.storage import JsonMemoryStore
 
@@ -34,6 +36,18 @@ def build_parser() -> ArgumentParser:
         help="Path to the JSON memory store",
     )
 
+    image_query_parser = subcommands.add_parser(
+        "search-image",
+        help="Retrieve visually similar tiles from memory",
+    )
+    image_query_parser.add_argument("path", help="Image file to search with")
+    image_query_parser.add_argument(
+        "--store",
+        default=".mosaic/memory.json",
+        help="Path to the JSON memory store",
+    )
+    image_query_parser.add_argument("--top-k", type=int, default=4, help="Number of tiles to return")
+
     return parser
 
 
@@ -47,6 +61,8 @@ def main(argv: list[str] | None = None) -> int:
         return _ingest(args)
     if args.command == "memory":
         return _memory(args)
+    if args.command == "search-image":
+        return _search_image(args)
     raise ValueError(f"Unsupported command: {args.command}")
 
 
@@ -106,6 +122,7 @@ def _add_tiles(graph: HyperGraph, tiles) -> None:
                 "width": tile.image.width,
                 "height": tile.image.height,
                 "embedding_dim": len(tile.embedding),
+                "visual_embedding": embed_image_pixels(tile.image),
             },
         )
 
@@ -120,6 +137,46 @@ def _memory(args: Namespace) -> int:
     print(f"edges: {summary['edges']}")
     print(f"avg degree: {summary['avg_degree']:.2f}")
     return 0
+
+
+def _search_image(args: Namespace) -> int:
+    path = Path(args.path)
+    if not path.exists():
+        print(f"File not found: {path}")
+        return 2
+
+    from PIL import Image
+
+    query_embedding = embed_image_pixels(Image.open(path).convert("RGB"))
+    graph = JsonMemoryStore(args.store).load()
+    results = _search_visual_nodes(graph.nodes(), query_embedding, top_k=args.top_k)
+    if not results:
+        print("No visual tiles found in memory.")
+        return 1
+
+    for rank, (tile_id, score, metadata) in enumerate(results, start=1):
+        print(
+            f"{rank}. {tile_id} score={score:.3f} "
+            f"source={Path(metadata['source']).name} page={metadata['page']} index={metadata['index']}"
+        )
+    return 0
+
+
+def _search_visual_nodes(
+    nodes: dict[str, dict],
+    query_embedding: list[float],
+    top_k: int,
+) -> list[tuple[str, float, dict]]:
+    if top_k <= 0:
+        return []
+
+    scored = []
+    for tile_id, metadata in nodes.items():
+        embedding = metadata.get("visual_embedding", [])
+        if embedding:
+            scored.append((tile_id, cosine_similarity(query_embedding, embedding), metadata))
+    scored.sort(key=lambda item: item[1], reverse=True)
+    return scored[:top_k]
 
 
 if __name__ == "__main__":

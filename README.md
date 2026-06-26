@@ -9,9 +9,17 @@
 
 ## Status
 
-Mosaic is an early local-first research prototype. The core package structure is in place for
-pixel ingestion, tile embeddings, hypergraph memory, sidecar model checks, and an agentic
-retrieval loop. The roadmap below tracks the pieces still being hardened for real workloads.
+Mosaic is an early local-first research prototype. The working path today is:
+
+1. Render an image or PDF into 448x448 pixel tiles
+2. Store each tile as a hypergraph node
+3. Persist the hypergraph to a local JSON memory store
+4. Build a small pixel-derived visual vector for each tile
+5. Retrieve visually similar tiles with `mosaic search-image`
+
+The full agentic question-answering loop and VLM-grade semantic image embeddings are still
+roadmap items. The prototype is intentionally small, but the implemented path is visual:
+tiles are embedded from pixels, not parsed text.
 
 ---
 
@@ -97,6 +105,14 @@ ollama pull qwen2.5:0.5b
 python -c "from mosaic.sidecar.models import check_sidecars; print(check_sidecars())"
 ```
 
+Try the current local workflow:
+
+```bash
+mosaic ingest path/to/document-or-image.png --store .mosaic/memory.json
+mosaic memory --store .mosaic/memory.json
+mosaic search-image path/to/query-image.png --store .mosaic/memory.json
+```
+
 For development:
 
 ```bash
@@ -154,10 +170,14 @@ Mosaic combines all three.
 
 ## Roadmap
 
-- [ ] Real vector store for tile retrieval (replace stub)
+- [x] Pixel tile ingestion
+- [x] Persistent hypergraph node storage
+- [x] Local pixel-derived visual vectors
+- [x] Image-to-image tile retrieval
+- [ ] Real vector store for tile retrieval (SQLite or DuckDB)
 - [ ] True image embeddings via embed-capable VLM
-- [ ] Persistent hypergraph storage (SQLite or DuckDB)
-- [ ] CLI — `mosaic ingest <file>`, `mosaic query "<question>"`
+- [ ] CLI — `mosaic query "<question>"`
+- [ ] Agent evaluates retrieval and creates hyperedges from answers
 - [ ] Multi-document hyperedges (cross-document evidence linking)
 - [ ] Hypergraph visualization
 
