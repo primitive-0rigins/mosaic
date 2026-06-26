@@ -128,6 +128,17 @@ mosaic report --store .mosaic/memory.json --output .mosaic/report.html
 evidence can be opened and inspected.
 `mosaic report` creates a static HTML overview of stored tiles and hyperedges.
 
+Or run the self-contained demo:
+
+```bash
+python scripts/demo.py --output .mosaic/demo
+python scripts/demo_video.py --demo-output .mosaic/demo --output .mosaic/demo/demo.mp4
+```
+
+The demo generates a synthetic visual document, ingests it, searches visually similar tiles,
+links two tiles with a hyperedge, and writes `.mosaic/demo/report.html`.
+The video script creates a short MP4 walkthrough from the demo artifacts. It requires `ffmpeg`.
+
 For development:
 
 ```bash
