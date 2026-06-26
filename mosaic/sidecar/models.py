@@ -15,7 +15,7 @@ Both models run locally. No cloud API. No model larger than 3B.
 """
 
 VISION_SIDECAR = "moondream2"       # 1.8B — vision, tile embedding
-LANGUAGE_SIDECAR = "qwen2.5:1.5b"  # 1.5B — agentic loop decisions
+LANGUAGE_SIDECAR = "qwen2.5:0.5b"  # 0.5B — agentic loop decisions
 
 REQUIRED_MODELS = [VISION_SIDECAR, LANGUAGE_SIDECAR]
 

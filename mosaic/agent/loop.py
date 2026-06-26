@@ -48,7 +48,7 @@ class MosaicAgent:
     Uses a language sidecar to drive retrieval decisions.
     """
 
-    def __init__(self, graph: HyperGraph, tile_store: dict[str, Tile], sidecar_model: str = "qwen2.5:1.5b"):
+    def __init__(self, graph: HyperGraph, tile_store: dict[str, Tile], sidecar_model: str = "qwen2.5:0.5b"):
         self.graph = graph
         self.tile_store = tile_store  # tile_id -> Tile
         self.model = sidecar_model

@@ -13,7 +13,7 @@ Mosaic never converts documents to text. Documents become **pixel tiles**. Tiles
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Layer 3 — Agentic Loop                                     │
-│  Sidecar 2: qwen2.5:1.5b                                    │
+│  Sidecar 2: qwen2.5:0.5b                                    │
 │  Decides: retrieve → validate → re-query → answer           │
 │  Updates hypergraph memory after each successful query       │
 ├─────────────────────────────────────────────────────────────┤
@@ -73,7 +73,7 @@ Sidecar 2 evaluates: sufficient? relevant? contradictory?
 | Role | Model | Size | Purpose |
 |------|-------|------|---------|
 | Vision | moondream2 | 1.8B | Reads tiles visually, produces embeddings |
-| Language | qwen2.5:1.5b | 1.5B | Drives agentic loop decisions |
+| Language | qwen2.5:0.5b | 0.5B | Drives agentic loop decisions |
 
 Both run locally via Ollama. No cloud API. No model larger than 3B.
 

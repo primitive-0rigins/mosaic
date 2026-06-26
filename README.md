@@ -32,7 +32,7 @@ This matters because real evidence is n-ary:
 A binary graph cannot represent this without losing meaning. A hyperedge captures it natively.
 
 ### Layer 3 — Agentic Loop
-A local language model (qwen2.5:1.5b) drives retrieval decisions:
+A local language model (qwen2.5:0.5b) drives retrieval decisions:
 
 1. Retrieve candidate tiles
 2. Evaluate: are these tiles sufficient? relevant? contradictory?
@@ -47,7 +47,7 @@ Each successful query makes the memory richer. The hypergraph grows as Mosaic is
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Agentic Loop          qwen2.5:1.5b                         │
+│  Agentic Loop          qwen2.5:0.5b                         │
 │  retrieve → validate → re-query → answer → update memory    │
 ├─────────────────────────────────────────────────────────────┤
 │  Hypergraph Memory                                          │
@@ -65,7 +65,7 @@ Each successful query makes the memory richer. The hypergraph grows as Mosaic is
 | Role | Model | Size |
 |------|-------|------|
 | Vision | moondream2 | 1.8B |
-| Language | qwen2.5:1.5b | 1.5B |
+| Language | qwen2.5:0.5b | 0.5B |
 
 No cloud API. No model larger than 3B. Runs fully local.
 
@@ -79,7 +79,7 @@ pip install -e .
 
 # Pull sidecar models
 ollama pull moondream2
-ollama pull qwen2.5:1.5b
+ollama pull qwen2.5:0.5b
 
 # Check sidecars are ready
 python -c "from mosaic.sidecar.models import check_sidecars; print(check_sidecars())"
@@ -114,7 +114,7 @@ mosaic/
 | Memory structure | Hypergraph (n-ary edges) not standard graph (binary edges) |
 | Retrieval strategy | Agentic loop — validate and re-retrieve, not single-pass |
 | Vision sidecar | moondream2 (1.8B) — local, no cloud |
-| Language sidecar | qwen2.5:1.5b (1.5B) — local, no cloud |
+| Language sidecar | qwen2.5:0.5b (1.5B) — local, no cloud |
 | Max iterations | 4 — balances quality vs. cost |
 
 ---
