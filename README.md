@@ -17,6 +17,7 @@ Mosaic is an early local-first research prototype. The working path today is:
 4. Build a small pixel-derived visual vector for each tile
 5. Save each tile as a PNG artifact
 6. Retrieve visually similar tiles with `mosaic search-image`
+7. Manually link multiple tiles into a persisted hyperedge with `mosaic link`
 
 The full agentic question-answering loop and VLM-grade semantic image embeddings are still
 roadmap items. The prototype is intentionally small, but the implemented path is visual:
@@ -116,6 +117,7 @@ Try the current local workflow:
 mosaic ingest path/to/document-or-image.png --store .mosaic/memory.json
 mosaic memory --store .mosaic/memory.json
 mosaic search-image path/to/query-image.png --store .mosaic/memory.json
+mosaic link tile-a tile-b --store .mosaic/memory.json --label supports --claim "joint evidence"
 ```
 
 `mosaic search-image` prints the stored tile path for each match, so the retrieved
@@ -183,11 +185,12 @@ Mosaic combines all three.
 - [x] Local pixel-derived visual vectors
 - [x] Saved tile artifacts for inspection
 - [x] Image-to-image tile retrieval
+- [x] Manual multi-tile hyperedge creation
 - [ ] Real vector store for tile retrieval (SQLite or DuckDB)
 - [ ] True image embeddings via embed-capable VLM
 - [ ] CLI — `mosaic query "<question>"`
 - [ ] Agent evaluates retrieval and creates hyperedges from answers
-- [ ] Multi-document hyperedges (cross-document evidence linking)
+- [ ] Agent-created multi-document hyperedges
 - [ ] Hypergraph visualization
 
 ---

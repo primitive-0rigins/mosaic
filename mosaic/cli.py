@@ -5,7 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 from mosaic.embedding.image_features import embed_image_pixels
-from mosaic.hypergraph.graph import HyperGraph
+from mosaic.hypergraph.graph import HyperEdge, HyperGraph
 from mosaic.ingestion.tiler import tile_file
 from mosaic.retrieval.vector import cosine_similarity
 from mosaic.sidecar.models import check_sidecars
@@ -40,6 +40,22 @@ def build_parser() -> ArgumentParser:
         help="Path to the JSON memory store",
     )
 
+    link_parser = subcommands.add_parser("link", help="Create a hyperedge across stored tiles")
+    link_parser.add_argument("tile_ids", nargs="+", help="Two or more tile IDs to connect")
+    link_parser.add_argument(
+        "--store",
+        default=".mosaic/memory.json",
+        help="Path to the JSON memory store",
+    )
+    link_parser.add_argument("--label", default="supports", help="Relationship label")
+    link_parser.add_argument("--claim", help="Claim or note represented by this hyperedge")
+    link_parser.add_argument(
+        "--confidence",
+        type=float,
+        default=1.0,
+        help="Confidence score from 0.0 to 1.0",
+    )
+
     image_query_parser = subcommands.add_parser(
         "search-image",
         help="Retrieve visually similar tiles from memory",
@@ -65,6 +81,8 @@ def main(argv: list[str] | None = None) -> int:
         return _ingest(args)
     if args.command == "memory":
         return _memory(args)
+    if args.command == "link":
+        return _link(args)
     if args.command == "search-image":
         return _search_image(args)
     raise ValueError(f"Unsupported command: {args.command}")
@@ -146,6 +164,31 @@ def _memory(args: Namespace) -> int:
     print(f"nodes: {summary['nodes']}")
     print(f"edges: {summary['edges']}")
     print(f"avg degree: {summary['avg_degree']:.2f}")
+    return 0
+
+
+def _link(args: Namespace) -> int:
+    store = JsonMemoryStore(args.store)
+    graph = store.load()
+    try:
+        edge = HyperEdge.create(
+            args.tile_ids,
+            args.label,
+            claim=args.claim,
+            confidence=args.confidence,
+        )
+        graph.add_edge(edge)
+    except ValueError as error:
+        print(f"Could not create link: {error}")
+        return 2
+
+    store.save(graph)
+    print(f"linked: {edge.edge_id}")
+    print(f"label: {edge.label}")
+    print(f"tiles: {', '.join(edge.tile_ids)}")
+    if edge.claim:
+        print(f"claim: {edge.claim}")
+    print(f"store: {store.path}")
     return 0
 
 
