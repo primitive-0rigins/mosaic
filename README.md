@@ -1,11 +1,35 @@
 # Mosaic
 
+[![CI](https://github.com/primitive-0rigins/mosaic/actions/workflows/ci.yml/badge.svg)](https://github.com/primitive-0rigins/mosaic/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+
 **Agentic pixel-hypergraph memory. Documents as tiles. Relationships as structure.**
 
 > Documents become tiles. Tiles become nodes. Relationships become hyperedges.
 > The agent decides what to retrieve, validates it, and builds memory as structure.
 
+![Mosaic portfolio card](docs/portfolio-card.svg)
+
 ---
+
+## Why This Matters
+
+Mosaic explores visual-first retrieval without hiding the prototype boundary. The implemented
+path renders documents to image tiles, stores local pixel-derived vectors, persists hypergraph
+memory, retrieves similar visual evidence, and exports an inspectable report.
+
+## Quick Demo
+
+```bash
+git clone https://github.com/primitive-0rigins/mosaic.git
+cd mosaic
+pip install -e ".[dev]"
+pytest
+python scripts/demo.py --output .mosaic/demo
+```
+
+Open `.mosaic/demo/report.html` to inspect the generated memory report.
 
 ## Status
 
